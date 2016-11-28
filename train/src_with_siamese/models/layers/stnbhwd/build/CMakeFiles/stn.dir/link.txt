@@ -1,0 +1,1 @@
+/usr/bin/cc  -fPIC  -fopenmp -O3 -DNDEBUG   -shared -Wl,-soname,libstn.so -o libstn.so CMakeFiles/stn.dir/init.c.o  -L/home/liuxhy237/Git/torch/install/lib -lluaT /home/liuxhy237/Git/torch/install/lib/libTH.so -lopenblas -lrt -lm -Wl,-rpath,/home/liuxhy237/Git/torch/install/lib::::::::::::::: 
