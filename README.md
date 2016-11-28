@@ -13,9 +13,9 @@ In addition, if you download the full [MPII Human Pose dataset](http://human-pos
 ### Contents
 1. [Installation](#installation)
 2. [Preparation](#preparation)
-3. [Demo](#demo)
-3. [Train/Eval](#traineval)
-4. [Models](#models)
+3. [Evaluate](#demo)
+3. [Train](#traineval)
+4. [Acknowledgements](#models)
 
 ### Installation
 To run this code, the following must be installed:
@@ -40,7 +40,7 @@ After all the installation is done, get the code. We will call the directory tha
 
 
 ### Preparation
-#### For evaluate only
+#### For evaluation only
 1. Download pre-trained [SPPE+SSTN model](). By default, we assume the models are stored in `$SPPE_ROOT/predict/model/`.
 
 #### For training
@@ -48,65 +48,35 @@ After all the installation is done, get the code. We will call the directory tha
 
 2. Download [MPII images](http://datasets.d2.mpi-inf.mpg.de/andriluka14cvpr/mpii_human_pose_v1.tar.gz) and [COCO14 training set](http://msvocds.blob.core.windows.net/coco2014/train2014.zip). By default, we assume the images are stored in `/data/MPII_COCO14/images/`.
 
-3. Download [MPII_COCO14 Annotations](). By default, we assume the XMLs are stored in the `/data/MPII_COCO14/Annotations/`.
 
-### Demo
-Our experiments use both Caffe and Torch7. But we implement the whole framework in Caffe so you can run the demo easily.
-1. Run the ipython notebook. It will show you how our whole framework works.
+### Evaluate
+You will need to generate bounding box first. Please follow the guidlines in the main [repo]().
+Here we have already generated the bounding box in `$SPPE_ROOT/predict/annot/mpii-test0.09/`
   ```Shell
-  cd $CAFFE_ROOT
-  # make a soft link to the images
-  ln -s /data/MPII_COCO14/images/ data/MPII/images
-  jupyter notebook examples/rmpe/Regional Multi-person Pose Estimation.ipynb
-  ```
-
-2. Run the python program for more results.
-  ```Shell
-  python examples/rmpe/demo.py
-  ```
-
-### Train/Eval
-1. Train human detector. 
-We use the data in MPII and COCO14 to train our human detector. We have already create the train/val list in `CAFFE_ROOT/data/MPII_COCO14` and release our script in `CAFFE_ROOT/examples/rmpe`, so basically what you need to do will be something like
-  ```Shell
-  # First create the LMDB file.
-  cd $CAFFE_ROOT
-  # You can modify the parameters in create_data.sh if needed.
-  # It will create lmdb files for trainval and test with encoded original image:
-  #   - /data/MPII_COCO14/lmdb/MPII_COCO14_trainval_lmdb
-  #   - /data/MPII_COCO14/lmdb/MPII_COCO14_test_lmdb
-  # and make soft links at examples/MPII_COCO14/
-  ./data/MPII_COCO14/create_data.sh
-  # It will create model definition files and save snapshot models in:
-  #   - $CAFFE_ROOT/models/VGG_SSD/MPII_COCO14/SSD_500x500/
-  # and job file, log file, and the python script in:
-  #   - $CAFFE_ROOT/jobs/VGG_SSD/MPII_COCO14/SSD_500x500/
-  # and save temporary evaluation results in:
-  #   - $HOME/data/MPII_COCO14/results/SSD_500x500/
-  # It should reach 85.* mAP at 60k iterations.
-  python examples/rmpe/ssd_pascal_MPII_COCO14VGG.py
-  ```
-
-2. Train SPPE+SSTN.
-This part of our model is implemented in Torch7. Please refer to [this repo]() for more details.
-We will call the directory that you cloned the repo into `$SPPE_ROOT`.
-Note that I am currently working on an implementation in Caffe. The script may come out soon.
-
-
-3. Evaluate the model. You can modify line 45 in `demo.py` to evaluate our framework on whole test set. But the results may be slightly different from our work. To reproduce our results reported in our paper:
-  ```Shell
-  # First get the result of human detector
-  cd $CAFFE_ROOT
-  jupyter notebook examples/rmpe/human_detection.ipynb
-  # Then move the results to $SPPE_ROOT/predict/annot/
-  mv examples/rmpe/mpii-test0.09 $SPPE_ROOT/predict/annot/
-  # Next, do single person human estimation
   cd $SPPE_ROOT/predict
+  # make a soft link to the images then test
+  ln -s /data/MPII_COCO14/images/ data/images
+  # get the predicted results
   th main.lua predict-test
-  #Finally, do pose NMS and write results to .mat
-  python batch_nms.py
-
   ```
+You can also use the following command to visualize the single person pose results.
+```Shell
+  qlua main.lua demo
+  ```
+### Train
+We finetune our model based on the pre-trained stacked-hourglass model.
+  ```Shell
+  cd $SPPE_ROOT/train/src
+  ln -s /data/MPII_COCO14/images ../data/mpii/images
+  # First finetune the model using DPG
+  th main.lua -expID finetune -addDPG
+  th main.lua -expID finetune -addDPG -continue -LR 0.5e-4 -nEpochs 8
+  # Then add parallel SPPE and SSTN on the finetuned model
+  # It should reach a final mAP of 80.*
+  th main.lua -expID final_model -loadModel '../exp/mpii/finetune/final_model.t7' -LR 0.5e-4 -addParallelSPPE -addSTN -addDPG
+  th main.lua -expID final_model -continue -Npochs 8 -LR 0.1e-4 -addParallelSPPE -addSTN -addDPG
+  ```
+
 
 ## Acknowledgements ##
 
