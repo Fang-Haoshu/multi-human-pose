@@ -41,7 +41,7 @@ After all the installation is done, get the code. We will call the directory tha
 
 ### Preparation
 #### For evaluation only
-1. Download pre-trained [SPPE+SSTN model](). By default, we assume the models are stored in `$SPPE_ROOT/predict/model/`.
+1. Download pre-trained SPPE+SSTN model([Google drive](https://drive.google.com/open?id=0BxORzoJl8N9PSThkWUVNS0xSc3c)|[Baidu cloud](http://pan.baidu.com/s/1eS5edRc)). By default, we assume the models are stored in `$SPPE_ROOT/predict/model/`.
 
 #### For training
 1. Download [stacked hourglass networks](http://www-personal.umich.edu/~alnewell/pose/umich-stacked-hourglass.zip). By default, we assume the model is stored in `$SPPE_ROOT/train/`.
@@ -50,8 +50,8 @@ After all the installation is done, get the code. We will call the directory tha
 
 
 ### Evaluate
-You will need to generate bounding box first. Please follow the guidlines in the main [repo]().
-Here we have already generated the bounding box in `$SPPE_ROOT/predict/annot/mpii-test0.09/`
+You will need to generate bounding box first. Here we have already generated the bounding box in `$SPPE_ROOT/predict/annot/mpii-test0.09/`. To generate it yourself, please follow the guidlines in the main [repo]().
+
   ```Shell
   cd $SPPE_ROOT/predict
   # make a soft link to the images then test
