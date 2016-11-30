@@ -35,7 +35,7 @@ def test_parametric_pose_NMS(delta1,delta2,mu,gamma):
     NMS_preds = open("pred.txt",'w')
     NMS_scores = open("scores.txt",'w')
     proposal_scores = open("scores-proposals.txt",'w')
-    NMS_index = open("test.txt",'w')
+    NMS_index = open("index.txt",'w')
     num_human = 0
     
     #loop through every image
@@ -79,6 +79,8 @@ def test_parametric_pose_NMS(delta1,delta2,mu,gamma):
             
             #first compute the average score of a person
             ids = np.arange(16)
+            if (scores_pick[j,0,0] < 0.1): ids = np.delete(ids,0);
+            if (scores_pick[j,5,0] < 0.1): ids = np.delete(ids,5);
             mean_score = np.mean(scores_pick[j,ids,0])
             if (mean_score < scoreThreds):
                 continue
@@ -89,6 +91,8 @@ def test_parametric_pose_NMS(delta1,delta2,mu,gamma):
             merge_poses,merge_score = merge_pose(preds_pick[j],preds[merge_id],scores[merge_id],Sizes[pick[j]])
             
             ids = np.arange(16)
+            if (merge_score[0] < 0.1): ids = np.delete(ids,0);
+            if (merge_score[5] < 0.1): ids = np.delete(ids,5);
             mean_score = np.mean(merge_score[ids])
             if (mean_score < scoreThreds):
                 continue
