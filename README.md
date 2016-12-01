@@ -6,9 +6,9 @@ This repository includes Torch code for training our SPPE+SSTN model presented i
 ### Contents
 1. [Installation](#installation)
 2. [Preparation](#preparation)
-3. [Evaluate](#demo)
-3. [Train](#traineval)
-4. [Acknowledgements](#models)
+3. [Evaluate](#evaluate)
+3. [Train](#train)
+4. [Acknowledgements](#acknowledgements)
 
 ### Installation
 To run this code, the following must be installed:
@@ -71,7 +71,7 @@ We finetune our model based on the pre-trained stacked-hourglass model.
   ```
 
 
-## Acknowledgements ##
+### Acknowledgements
 
 Thanks to [Wei Liu](https://github.com/weiliu89/caffe/tree/ssd), [Alejandro Newell](https://github.com/anewell/pose-hg-train), [Pfister, T.](https://github.com/tpfister/caffe-heatmap), [Kaichun Mo](https://github.com/daerduoCarey/SpatialTransformerLayer), [Maxime Oquab](https://github.com/qassemoquab/stnbhwd) for contributing their codes. 
 Thanks to the authors of Caffe and Torch7!
