@@ -25,10 +25,10 @@ To install STN module, do
   cd stnbhwd && luarocks make stnbhwd-scm-1.rockspec
   ```
 
-After all the installation is done, get the code. We will call the directory that you cloned Caffe into `$SPPE_ROOT`
+After all the installation is done, get the code. We will call the directory that you cloned this repo into `$SPPE_ROOT`
   ```Shell
-  git clone https://github.com/weiliu89/caffe.git
-  cd caffe
+  git clone https://github.com/Fang-Haoshu/multi-human-pose.git
+  cd multi-human-pose
   ```
 
 
