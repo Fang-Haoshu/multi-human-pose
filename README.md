@@ -1,6 +1,6 @@
 # RMPE: Regional Multi-person Pose Estimation(SPPE+SSTN part)
 
-This repository includes Torch code for training our SPPE+SSTN model presented in our [arXiv paper]().
+This repository includes Torch code for training our SPPE+SSTN model presented in our [arXiv paper](https://arxiv.org/abs/1612.00137v1).
 
 
 ### Contents
