@@ -62,8 +62,10 @@ We finetune our model based on the pre-trained stacked-hourglass model.
   cd $SPPE_ROOT/train/src
   ln -s /data/MPII_COCO14/images ../data/mpii/images
   # First finetune the model using DPG
-  th main.lua -expID finetune -addDPG
-  th main.lua -expID finetune -addDPG -continue -LR 0.5e-4 -nEpochs 8
+  th main.lua -expID finetune -nEpochs 4
+  th main.lua -expID finetune -continue -LR 0.5e-4 -nEpochs 2
+  th main.lua -expID finetune -addDPG -continue -nEpochs 4
+  th main.lua -expID finetune -addDPG -continue -LR 0.5e-4 -nEpochs 4
   # Then add parallel SPPE and SSTN on the finetuned model
   # It should reach a final mAP of 80.*
   th main.lua -expID final_model -loadModel '../exp/mpii/finetune/final_model.t7' -LR 0.5e-4 -addParallelSPPE -addSTN -addDPG
