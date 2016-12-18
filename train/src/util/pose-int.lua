@@ -71,8 +71,8 @@ function generateSample(set, idx)
         -- pick labels that are 1's 
         xmin = xmin[torch.eq(labels,1)]:int(); ymin = ymin[torch.eq(labels,1)]:int();
         xmax = xmax[torch.eq(labels,1)]:int(); ymax = ymax[torch.eq(labels,1)]:int();
-        PatchScale = PatchScale[torch.eq(labels,1)]:int();
-        --print(xmin:nElement())    
+        PatchScale = PatchScale[torch.eq(labels,1)];
+ 
         if (xmin:nElement() > 0) then
             pick_id = torch.random(xmin:nElement())
             if (xmax[pick_id] > 1 and ymax[pick_id] > 1) and (xmin[pick_id] < img:size(3) and ymin[pick_id] < img:size(2))and (xmax[pick_id] ~= xmin[pick_id]) and (ymax[pick_id] ~= ymin[pick_id]) then
