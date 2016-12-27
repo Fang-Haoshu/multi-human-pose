@@ -20,7 +20,7 @@ function generateSample(set, idx)
     bottomRight[2] = bndbox[1][4]
     local ht = bottomRight[2]-upLeft[2]
     local width = bottomRight[1]-upLeft[1]
-    local rand = torch.rand(1)
+    local scaleRate = 0.3
     upLeft[1] = math.max(0,(upLeft[1] - width*scaleRate/2))
     upLeft[2] = math.max(0,(upLeft[2] - ht*scaleRate/2))
     bottomRight[1] = math.min(imgwidth,(bottomRight[1] + width*scaleRate/2))
