@@ -37,7 +37,7 @@ After all the installation is done, get the code. We will call the directory tha
 1. Download pre-trained SPPE+SSTN model([Google drive](https://drive.google.com/open?id=0BxORzoJl8N9PSThkWUVNS0xSc3c)|[Baidu cloud](http://pan.baidu.com/s/1eS5edRc)). By default, we assume the models are stored in `$SPPE_ROOT/predict/model/`.
 
 #### For training
-1. Download [stacked hourglass networks](http://www-personal.umich.edu/~alnewell/pose/umich-stacked-hourglass.zip). By default, we assume the model is stored in `$SPPE_ROOT/train/`.
+1. Download [stacked hourglass networks](https://pan.baidu.com/s/1hsft2YC). By default, we assume the model is stored in `$SPPE_ROOT/train/`.
 
 2. Download [MPII images](http://datasets.d2.mpi-inf.mpg.de/andriluka14cvpr/mpii_human_pose_v1.tar.gz) and [COCO14 training set](http://msvocds.blob.core.windows.net/coco2014/train2014.zip). By default, we assume the images are stored in `/data/MPII_COCO14/images/`.
 
