@@ -67,7 +67,7 @@ We finetune our model based on the pre-trained stacked-hourglass model.
   # Then add parallel SPPE and SSTN on the finetuned model
   # It should reach a final mAP of 80.*
   th main.lua -expID final_model -loadModel '../exp/mpii/finetune/final_model.t7' -LR 0.5e-4 -addParallelSPPE -addSTN -addDPG
-  th main.lua -expID final_model -continue -Npochs 8 -LR 0.1e-4 -addParallelSPPE -addSTN -addDPG
+  th main.lua -expID final_model -continue -nEpochs 8 -LR 0.1e-4 -addParallelSPPE -addSTN -addDPG
   ```
 
 
