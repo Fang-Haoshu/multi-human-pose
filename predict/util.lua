@@ -88,11 +88,11 @@ function drawSkeleton(input, hms, coords)
                        'RWri','RElb','RSho','LSho','LElb','LWri'}
     local partColor = {1,1,1,2,2,2,0,0,0,0,3,3,3,4,4,4}
 
-    local actThresh = 0.005
+    local actThresh = 0.2
 
     -- Loop through adjacent joint pairings
     for i = 1,#pairRef do
-        if hms[pairRef[i][1]]:mean() > actThresh and hms[pairRef[i][2]]:mean() > actThresh then
+        if hms[pairRef[i][1]]:max() > actThresh and hms[pairRef[i][2]]:max() > actThresh then
             -- Set appropriate line color
             local color
             if partColor[pairRef[i][1]] == 1 then color = {0,.3,1}

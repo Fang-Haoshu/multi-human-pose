@@ -1,10 +1,10 @@
 
-load('../../data/mpii/annot.mat');
+load('../../data/mpii/annot/mpii_human_pose_v1_u12_1.mat');
 imgname = h5read('../../data/mpii/annot/test.h5', '/imgname');
 index = h5read('../../data/mpii/annot/test.h5', '/index') + 1;
 person = h5read('../../data/mpii/annot/test.h5', '/person') + 1;
 scale = h5read('../../data/mpii/annot/test.h5', '/scale');
-preds = h5read('../../exp/mpii/best/preds_full.h5', '/preds_tf');
+preds = h5read('../../exp/mpii/best/final_preds.h5', '/preds');
 nJoints = size(preds, 2);
 
 for i = 1:size(preds, 3)

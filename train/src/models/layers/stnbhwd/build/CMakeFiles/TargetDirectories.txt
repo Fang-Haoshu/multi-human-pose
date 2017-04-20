@@ -1,2 +1,0 @@
-/home/liuxhy237/Git/pose-hg-train/src/models/layers/stnbhwd/build/CMakeFiles/custn.dir
-/home/liuxhy237/Git/pose-hg-train/src/models/layers/stnbhwd/build/CMakeFiles/stn.dir

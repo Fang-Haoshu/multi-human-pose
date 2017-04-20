@@ -2,6 +2,16 @@
 -- Helpful functions for evaluation
 -------------------------------------------------------------------------------
 
+function loadPreds(predFile, doHm, doInp)
+    local f = hdf5.open(projectDir .. '/exp/' .. predFile .. '.h5','r')
+    local inp,hms
+    local idxs = f:read('idxs'):all()
+    local preds = f:read('preds'):all()
+    if doHm then hms = f:read('heatmaps'):all() end
+    if doInp then inp = f:read('input'):all() end
+    return idxs, preds, hms, inp
+end
+
 function calcDists(preds, label, normalize)
     local dists = torch.Tensor(preds:size(2), preds:size(1))
     local diff = torch.Tensor(2)
@@ -52,14 +62,22 @@ function heatmapAccuracy(output, label, thr, idxs)
     	    if acc[i+1] >= 0 then avgAcc = avgAcc + acc[i+1]
             else badIdxCount = badIdxCount + 1 end
         end
-        acc[1] = avgAcc / (dists:size(1) - badIdxCount)
+        if dists:size(1) ~= badIdxCount then
+            acc[1] = avgAcc / (dists:size(1) - badIdxCount)
+        else
+            acc[1] = 0
+        end
     else
         for i = 1,#idxs do
             acc[i+1] = distAccuracy(dists[idxs[i]])
 	    if acc[i+1] >= 0 then avgAcc = avgAcc + acc[i+1]
             else badIdxCount = badIdxCount + 1 end
         end
-        acc[1] = avgAcc / (#idxs - badIdxCount)
+        if #idxs ~= badIdxCount then
+            acc[1] = avgAcc / (#idxs - badIdxCount)
+        else
+            acc[1] = 0
+        end
     end
     return unpack(acc)
 end

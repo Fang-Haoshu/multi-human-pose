@@ -1,9 +1,8 @@
+require 'cutorch'
+require 'cunn'
+require 'cudnn'
 --- Load up network model or initialize from scratch
-require 'stn'
 paths.dofile('models/' .. opt.netType .. '.lua')
-paths.dofile('models/spatial_transformer_with_theta.lua')
-paths.dofile('models/map_back_stn.lua')
-paths.dofile('models/Get_Alpha.lua')
 
 -- Continuing an experiment where it left off
 if opt.continue or opt.branch ~= 'none' then
@@ -11,70 +10,107 @@ if opt.continue or opt.branch ~= 'none' then
     print('==> Loading model from: ' .. prevModel)
     model = torch.load(prevModel)
 
-elseif opt.addParallelSPPE ==  true and opt.addSTN == false then
-   assert(paths.filep(opt.loadModel), 'File not found: ' .. opt.loadModel)
-   print('==> Loading model from: ' .. opt.loadModel..' with parallel SPPE')
-   model = torch.load(opt.loadModel)
+-- For loading model with parallel sppe
+elseif opt.addParallelSPPE ==  true and opt.addSSTN == false then
+    assert(paths.filep(opt.loadModel), 'File not found: ' .. opt.loadModel)
+    print('==> Loading model from: ' .. opt.loadModel)
+    model = torch.load(opt.loadModel)
+    model_paraSPPE = model.forwardnodes[26].data.module
+    for i, m in ipairs(model_paraSPPE.modules) do
+        print ("1")
+        m.accGradParameters = function() end
+        m.updateParameters = function() end
+    end
 
-elseif opt.addParallelSPPE ==  true then
-   assert(paths.filep(opt.loadModel), 'File not found: ' .. opt.loadModel)
-   print('==> Loading model from: ' .. opt.loadModel..' and add parallel SPPE')
-   local model1 = torch.load(opt.loadModel)
-   local model2 = createMapBackStn(64,64)
-   local model3 = createMapBackStn(64,64)
-   local model4 = torch.load(opt.loadModel)
-   local inp = nn.Identity()()
-   local img_stn,_theta = spanet(inp):split(2)
-   local out1_stn,out2_stn = model1(img_stn):split(2)
-   local out3_stn,out4_stn = model4(img_stn):split(2)
-   local alpha = nn.Get_Alpha()(_theta)
-   local out1 = model2({out1_stn,alpha})
-   local out2 = model3({out2_stn,alpha})
-   model = nn.gModule({inp}, {out1,out2,out3_stn,out4_stn})
-   
--- Or we add a STN to a trained model 
-elseif opt.addSTN ~= false and opt.loadModel ~= 'none' then
-   assert(paths.filep(opt.loadModel), 'File not found: ' .. opt.loadModel)
-   print('==> Loading model from: ' .. opt.loadModel .. ' and add SSTN')
-   local model1 = torch.load(opt.loadModel)
-   local model2 = createMapBackStn(64,64)
-   local model3 = createMapBackStn(64,64)
-   local inp = nn.Identity()()
-   local img_stn,_theta = spanet(inp):split(2)
-   local out1_stn,out2_stn = model1(img_stn):split(2)
-   local alpha = nn.Get_Alpha()(_theta)
-   local out1 = model2({out1_stn,alpha})
-   local out2 = model3({out2_stn,alpha})
-   model = nn.gModule({inp}, {out1,out2})
-    
-
--- Or we add a STN to a new model 
-elseif opt.addSTN ~= false and opt.loadModel == 'none' then
-    print('==> Creating model from file: models/' .. opt.netType .. '.lua add SSTN')
-    local model1 = createModel(modelArgs)
-    local model2 = createMapBackStn(64,64)
-    local model3 = createMapBackStn(64,64)
+-- Add parallel sppe
+elseif opt.addParallelSPPE == true then
+    assert(paths.filep(opt.loadModel), 'File not found: ' .. opt.loadModel)
+    print('==> Loading model from: ' .. opt.loadModel..' and add parallel SPPE')
+    local model_sppe = torch.load(opt.loadModel)
+    print('==> Loading parallel SPPE from: ' .. opt.parallelSPPE)
+    local model_paraSPPE = torch.load(opt.parallelSPPE)
+    print('==> Freezing layers of parallel SPPE')
+    for i, m in ipairs(model_paraSPPE.modules) do
+      if torch.type(m):find('Convolution') then
+        m.accGradParameters = function() end
+        m.updateParameters = function() end
+      end
+    end
+    local model_sdtn = {}
+    for i = 1,opt.nStack do
+      local tmp_sdtn = createMapBackStn(opt.outputRes,opt.outputRes)
+      table.insert(model_sdtn,tmp_sdtn)
+    end
     local inp = nn.Identity()()
     local img_stn,_theta = spanet(inp):split(2)
-    local out1_stn,out2_stn = model1(img_stn):split(2)
+    local out_sppe_stn = {model_sppe(img_stn):split(opt.nStack)}
+    local out_paraSPPE_stn = {model_paraSPPE(img_stn):split(opt.nParaStack)}
     local alpha = nn.Get_Alpha()(_theta)
-    local out1 = model2({out1_stn,alpha})
-    local out2 = model3({out2_stn,alpha})
-    model = nn.gModule({inp}, {out1,out2})
+    local out = {}
+    for i = 1,opt.nStack do
+      local tmp_out = model_sdtn[i]({out_sppe_stn[i],alpha})
+      table.insert(out,tmp_out)
+    end
+    for i = 1,opt.nParaStack do
+      table.insert(out,out_paraSPPE_stn[i])
+    end
+    model = nn.gModule({inp}, out)
 
+-- Or we add a STN to a trained model 
+elseif opt.addSSTN ~= false and opt.loadModel ~= 'none' then
+    assert(paths.filep(opt.loadModel), 'File not found: ' .. opt.loadModel)
+    print('==> Loading model from: ' .. opt.loadModel)
+    local model_base = torch.load(opt.loadModel)
+    local model_sdtn = {}
+    for i = 1,opt.nStack do
+      local tmp_sdtn = createMapBackStn(opt.outputRes,opt.outputRes)
+      table.insert(model_sdtn,tmp_sdtn)
+    end
+    local inp = nn.Identity()()
+    local img_stn,_theta = spanet(inp):split(2)
+    local out_base = {model_base(img_stn):split(opt.nStack)}
+    local alpha = nn.Get_Alpha()(_theta)
+    local out = {}
+    for i = 1,opt.nStack do
+      local tmp_out = model_sdtn[i]({out_base[i],alpha})
+      table.insert(out,tmp_out)
+    end
+    model = nn.gModule({inp}, out)
+    --   graph.dot(model.fg, 'Forward Graph')
+
+
+-- Or we add a STN to a new model 
+elseif opt.addSSTN ~= false and opt.loadModel == 'none' then
+    print('==> Creating model from file: models/' .. opt.netType .. '.lua')
+    local model_base = createModel(modelArgs)
+    local model_sdtn = {}
+    for i = 1,opt.nStack do
+      local tmp_sdtn = createMapBackStn(opt.outputRes,opt.outputRes)
+      table.insert(model_sdtn,tmp_sdtn)
+    end
+    local inp = nn.Identity()()
+    local img_stn,theta = spanet(inp):split(2)
+    local out_base = {model_base(img_stn):split(opt.nStack)}
+    local alpha = nn.Get_Alpha()(theta)
+    local out = {}
+    for i = 1,opt.nStack do
+      local tmp_out = model_sdtn[i]({out_base[i],alpha})
+      table.insert(out,tmp_out)
+    end
+    model = nn.gModule({inp}, out)
+--    graph.dot(model.fg,'Model')
 
 -- Or a path to previously trained model is provided
-elseif opt.addSTN == false and opt.loadModel ~= 'none' then
+elseif opt.loadModel ~= 'none' then
     assert(paths.filep(opt.loadModel), 'File not found: ' .. opt.loadModel)
     print('==> Loading model from: ' .. opt.loadModel)
     model = torch.load(opt.loadModel)
 
--- Or we're starting fresh without STN
+-- Or we're starting fresh
 else
     print('==> Creating model from file: models/' .. opt.netType .. '.lua')
     model = createModel(modelArgs)
 end
-
 
 -- Criterion (can be set in the opt.task file as well)
 if not criterion then
@@ -86,4 +122,11 @@ if opt.GPU ~= -1 then
     print('==> Converting model to CUDA')
     model:cuda()
     criterion:cuda()
+    
+    cudnn.fastest = true
+    cudnn.benchmark = true
+else
+    print('==> Converting model to CPU')   
+    model = cudnn.convert(model,nn):float()
+    criterion = criterion:float()
 end

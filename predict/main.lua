@@ -25,8 +25,7 @@ else
     return
 end
 
---m = torch.load('../train/exp/mpii/parallel-grad-0.1e-4/model_7.t7')   -- best one
-m = torch.load('./SSTN+SPPEfinal.t7')
+m = torch.load('./final_model.t7')
 
 idxs = torch.range(1,a.nsamples)
 
@@ -67,7 +66,7 @@ for i = 1,nsamples do
     -- Get network output
     local out = m:forward(inp:view(1,3,inputRes,inputRes):cuda())
     cutorch.synchronize()
-    local hm = out[2][1]:float()
+    local hm = out[8][1]:float()
     hm[hm:lt(0)] = 0
 
     -- Get predictions (hm and img refer to the coordinate space)

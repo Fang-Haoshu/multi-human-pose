@@ -37,7 +37,7 @@ for i = 1:numel(part_index{2})
      for j = 1:numel(GTgroup.annorect)
          x = GTgroup.annorect(j).objpos.x; y = GTgroup.annorect(j).objpos.y; 
          scale =GTgroup.annorect(j).scale;
-         x1=x-50*scale;y1=y-50*scale; x2=x+50*scale;y2=y+50*scale;
+         x1=x-40*scale;y1=y-40*scale; x2=x+40*scale;y2=y+40*scale;
          if (x1<xmin) xmin=x1; end; if (y1<ymin) ymin=y1; end
          if (x2>xmax) xmax=x2; end; if (y2>ymax) ymax=y2; end
      end

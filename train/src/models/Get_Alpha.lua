@@ -19,7 +19,7 @@ function GetAlpha:updateOutput(input)
    if (theta:nDimension() == 2) then
       theta = addOuterDim(theta)
    end
-   assert ((theta:nDimension() == 3) and (theta:size(2) == 2) and (theta:size(3) == 3), 'Please make sure theta is bx2x3 matrix')
+   assert ((theta:nDimension() == 3) and (theta:size(2) == 2) and (theta:size(3) == 3), 'Please make sure theta is 2x3 matrix')
    local alpha = torch.CudaTensor(theta:size()):zero()
    local batchsize = alpha:size(1)
    for i=1,batchsize do
@@ -32,21 +32,10 @@ function GetAlpha:updateOutput(input)
 end
 
 function GetAlpha:updateGradInput(_input,gradOutput)
+   if (_input:nDimension() == 2) then
+      _input = addOuterDim(_input)
+   end
    self.gradInput = torch.CudaTensor(_input:size()):fill(0)
-
-   if _input:nDimension() == 2 
-    then 
-    _input = addOuterDim(_input) 
-   end
-   if gradOutput:nDimension() == 2 
-    then 
-      gradOutput = addOuterDim(_input) 
-   end
-   if self.gradInput:nDimension() == 2 
-    then 
-      self.gradInput = addOuterDim(self.gradInput) 
-   end
-
    local batchsize = _input:size(1)
 
    for i = 1,batchsize do
@@ -68,12 +57,12 @@ function GetAlpha:updateGradInput(_input,gradOutput)
      da_dt[{4,1}] = (-1)*theta1_2[2]*theta1_2[3];  da_dt[{4,2}] = theta1_2[1]*theta1_2[3];  da_dt[{4,3}] = theta1_2[2]*theta1_2[1];  da_dt[{4,4}] = (-1)*theta1_2[1]*theta1_2[1]
      --divided by the square of determinant
      da_dt:div(det*det)
-     
+
      local dtheta1_2 = torch.CudaTensor(4)
      dtheta1_2 = torch.mv(da_dt:t():cuda(),dalpha1_2)
      dtheta1_2 = dtheta1_2:reshape(2,2)
      self.gradInput:select(1,i)[{{},{1,2}}]:copy(dtheta1_2)
      self.gradInput:select(1,i)[{{},3}]:copy(dtheta3)
-     end
+  end
    return self.gradInput
 end
